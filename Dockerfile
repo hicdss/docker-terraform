@@ -3,6 +3,8 @@ MAINTAINER "Wojciech Puchta <wojciech.puchta@hicron.com>"
 
 ENV TERRAFORM_VERSION=0.12.24
 ENV AWS_CLI_VERSION=1.18.39
+ENV AZURE_CLI_VERSION=2.2.0
+ENV KUBECTL_VERSION=1.17.0
 ENV HELM_VERSION=2.16.1
 ENV HELM_SHA256=7eebaaa2da4734242bbcdced62cc32ba8c7164a18792c8acdf16c77abffce202
 ENV TF_DEV=true
@@ -13,11 +15,12 @@ WORKDIR "${GOPATH}/src/github.com/hashicorp/terraform"
 # install cli tools
 RUN apk update \
   && apk add bash py-pip make git openssh vim curl jq \
-  && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python-dev \
 
 # install azure cli
-  && pip install azure-cli \
+  && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python-dev \
+  && pip install "azure-cli==${AZURE_CLI_VERSION}" \
   && apk del --purge build \
+  && az extension add --name azure-devops \
 
 # install terraform
   && git clone https://github.com/hashicorp/terraform.git ./ \
@@ -34,7 +37,7 @@ RUN apk update \
   && mv /tmp/azcopy_linux_amd64*/azcopy /bin/azcopy \
 
 # install kubectl
-  && wget https://storage.googleapis.com/kubernetes-release/release/v1.17.0/bin/linux/amd64/kubectl \
+  && wget "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
   && chmod +x kubectl \
   && mv kubectl /usr/local/bin/ \
 
